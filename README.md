@@ -1,2 +1,5 @@
-# space-mission-simulator
-Autonomous AI-based space mission simulation system with API-driven decision making.
+## How to Run
+
+```bash
+pip install -r requirements.txt
+uvicorn main:app --reload
