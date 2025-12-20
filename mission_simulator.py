@@ -1,38 +1,40 @@
-def analyze_mission(mission):
-    """
-    Analyze mission parameters and assign risk.
-    """
-    if mission["orbit"] == "LEO":
-        return "LOW", 0.9
-    elif mission["orbit"] == "GEO":
-        return "MEDIUM", 0.75
-    else:
-        return "HIGH", 0.6
-
-
-def decide_action(risk_level):
-    """
-    Decide whether mission should proceed.
-    """
-    if risk_level == "HIGH":
-        return "HOLD"
-    return "PROCEED"
+from agents.planner_agent import plan_mission
+from agents.validator_agent import validate_plan
+from agents.safety_controller import safety_check
 
 
 def simulate_mission(mission: dict):
     """
-    Main autonomous mission simulation entry point.
+    Orchestrates autonomous mission agents.
     """
-    risk_level, confidence = analyze_mission(mission)
-    decision = decide_action(risk_level)
 
+    # Safety first
+    safe, safety_msg = safety_check(mission)
+    if not safe:
+        return {
+            "mission_name": mission["name"],
+            "status": "ABORTED",
+            "reason": safety_msg
+        }
+
+    # Planning
+    plan = plan_mission(mission)
+
+    # Validation
+    valid, validation_msg = validate_plan(plan)
+    if not valid:
+        return {
+            "mission_name": mission["name"],
+            "status": "REJECTED",
+            "reason": validation_msg
+        }
+
+    # Final decision
     return {
         "mission_name": mission["name"],
         "orbit": mission["orbit"],
-        "status": "SIMULATED",
-        "decision": decision,
-        "risk_level": risk_level,
-        "confidence": confidence,
-        "notes": "Autonomous decision generated via modular logic"
+        "status": "APPROVED",
+        "decision": "PROCEED",
+        "plan": plan,
+        "notes": "Mission approved by autonomous agent pipeline"
     }
-    
